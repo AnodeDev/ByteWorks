@@ -23,4 +23,4 @@ In the game there is:
 
 ## License
 
-[MIT](https://github.com/DexterHDev/ByteWorks)
+[MIT](https://github.com/DexterHDev/ByteWorks/blob/main/LICENSE)
