@@ -1,0 +1,9 @@
+[package]
+name = "byteworks"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+flexi_logger = "0.29.2"
+log = "0.4.22"
+ratatui = "0.28.1"
