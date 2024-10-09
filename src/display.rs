@@ -1,22 +1,25 @@
+use crate::app::GameState;
 use crate::cursor::Cursor;
-use crate::types::{Mode, Type};
+use crate::types::{Mode, RECIPES, Type};
 
-use ratatui::widgets::{Block, BorderType, Paragraph};
+use ratatui::layout::Alignment;
 use ratatui::prelude::{Constraint, Layout, Stylize};
-use ratatui::text::{Text, Line, Span};
-use ratatui::style::{Style, Color};
+use ratatui::style::{Color, Style};
+use ratatui::text::{Line, Span, Text};
+use ratatui::widgets::{Block, BorderType, Clear, Paragraph};
 
-use log::{info, warn, error};
+use log::{error, info, warn};
 
-pub struct Map {
+pub struct Display {
     pub map: Vec<Vec<String>>,
     pub type_map: Vec<Vec<Type>>,
     pub size: [usize; 2],
     pub cursor: Cursor,
     pub mode: Mode,
+    pub game_state: GameState,
 }
 
-impl Map {
+impl Display {
     pub fn new(size: [usize; 2]) -> Self {
         let mut map: Vec<Vec<String>> = Vec::new();
         let mut type_map: Vec<Vec<Type>> = Vec::new();
@@ -35,12 +38,13 @@ impl Map {
             type_map.push(type_row);
         }
 
-        Map {
+        Display {
             map,
             type_map,
             size,
             cursor,
             mode: Mode::Normal,
+            game_state: GameState::new(),
         }
     }
 
@@ -56,7 +60,7 @@ impl Map {
         if coords[0] < self.size[0] && coords[1] < self.size[1] {
             self.map[coords[1]][coords[0]] = first_letter;
             self.type_map[coords[1]][coords[0]] = nodetype;
-        } 
+        }
 
         Ok(())
     }
@@ -69,7 +73,10 @@ impl Map {
 
             for (x, c) in row.iter().enumerate() {
                 if x == self.cursor.x_pos && y == self.cursor.y_pos {
-                    spans.push(Span::styled(c, Style::default().fg(Color::Black).bg(Color::White)));
+                    spans.push(Span::styled(
+                        c,
+                        Style::default().fg(Color::Black).bg(Color::White),
+                    ));
                 } else {
                     spans.push(Span::styled(c, Style::default()));
                 }
@@ -87,7 +94,7 @@ impl Map {
             Mode::Build => {
                 let selected = self.cursor.selected_type.get_type();
                 return format!("MODE: BUILD\nSELECTED: {}", selected);
-            },
+            }
             Mode::Delete => return "MODE: DELETE".into(),
         }
     }
@@ -99,10 +106,13 @@ impl Map {
         match tile_type {
             Type::Machine(machine) => tile_info = format!("{}", machine),
             Type::Nothing => tile_info = format!("Just some grass..."),
-            _ => {},
+            _ => {}
         }
 
-        info!("({}, {}) - {}", &self.cursor.x_pos, &self.cursor.y_pos, &tile_info);
+        info!(
+            "({}, {}) - {}",
+            &self.cursor.x_pos, &self.cursor.y_pos, &tile_info
+        );
 
         format!("{}\n\n{}", tile_type.get_type(), tile_info)
     }
@@ -139,33 +149,64 @@ impl Map {
         .areas(tile_unpadded);
 
         frame.render_widget(
-            Paragraph::new(self.display_info())
-                .block(
-                    Block::bordered()
-                        .border_type(BorderType::Rounded)
-                        .title("Info")
-                ),
+            Paragraph::new(self.display_info()).block(
+                Block::bordered()
+                    .border_type(BorderType::Rounded)
+                    .title("Info"),
+            ),
             info_area,
         );
 
         frame.render_widget(
-            Paragraph::new(self.map_to_lines())
-                .block(
-                    Block::bordered()
-                        .border_type(BorderType::Rounded)
-                        .title("Map")
-                ),
+            Paragraph::new(self.map_to_lines()).block(
+                Block::bordered()
+                    .border_type(BorderType::Rounded)
+                    .title("Map"),
+            ),
             main_area,
         );
 
         frame.render_widget(
-            Paragraph::new(self.display_tile())
-                .block(
-                    Block::bordered()
-                        .border_type(BorderType::Rounded)
-                        .title("Tile")
-                ),
+            Paragraph::new(self.display_tile()).block(
+                Block::bordered()
+                    .border_type(BorderType::Rounded)
+                    .title("Tile"),
+            ),
             tile_area,
         );
+
+        if let Some(which_type) = &self.game_state.config_menu {
+            match which_type {
+                Type::Machine(machine) => {
+                    let [_, middle_unpadded, _] = Layout::horizontal([
+                        Constraint::Fill(1),
+                        Constraint::Percentage(70),
+                        Constraint::Fill(1),
+                    ])
+                    .areas(frame.area());
+
+                    let [_, middle_area, _] = Layout::vertical([
+                        Constraint::Fill(1),
+                        Constraint::Percentage(90),
+                        Constraint::Fill(1),
+                    ])
+                    .areas(middle_unpadded);
+
+                    frame.render_widget(Clear, middle_area);
+
+                    frame.render_widget(
+                        Paragraph::new(format!("SELECT RECIPE:\n\n{}", RECIPES.iter().map(|recipe| recipe.get_name()).collect::<Vec<String>>().join(", ")))
+                            .alignment(Alignment::Center)
+                            .block(
+                                Block::bordered()
+                                    .border_type(BorderType::Rounded)
+                                    .title("Config Menu"),
+                            ),
+                        middle_area,
+                    );
+                }
+                _ => {}
+            }
+        }
     }
 }

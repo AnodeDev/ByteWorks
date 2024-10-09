@@ -1,6 +1,9 @@
+#[macro_use]
+extern crate lazy_static;
+
 pub mod app;
-pub mod map;
 pub mod cursor;
+pub mod display;
 pub mod types;
 pub mod utils;
 
@@ -10,9 +13,9 @@ fn main() -> std::io::Result<()> {
     logging::init_logging();
 
     let map_size = [120, 60];
-    let mut map = map::Map::new(map_size);
+    let mut display = display::Display::new(map_size);
 
-    app::run(&mut map)?;
+    app::run(&mut display)?;
 
     ratatui::restore();
 

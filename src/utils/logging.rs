@@ -1,4 +1,4 @@
-use flexi_logger::{Logger, WriteMode, FileSpec};
+use flexi_logger::{FileSpec, Logger, WriteMode};
 
 pub fn init_logging() {
     Logger::try_with_str("info")

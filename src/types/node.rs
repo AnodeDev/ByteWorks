@@ -8,9 +8,6 @@ pub struct Node {
 
 impl Node {
     pub fn new(name: String, item: Item) -> Self {
-        Node {
-            name,
-            item,
-        }
+        Node { name, item }
     }
 }

@@ -1,4 +1,4 @@
-use crate::types::{Node, ConveyorBelt, Miner, Machine};
+use crate::types::{ConveyorBelt, Machine, Miner, Node};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
