@@ -1,21 +1,8 @@
-#[macro_use]
-extern crate lazy_static;
-
-pub mod app;
-pub mod cursor;
-pub mod display;
-pub mod types;
-pub mod utils;
-
-use crate::utils::logging;
+use byteworks::game::components::GameState;
+use byteworks::app;
 
 fn main() -> std::io::Result<()> {
-    logging::init_logging();
-
-    let map_size = [120, 60];
-    let mut display = display::Display::new(map_size);
-
-    app::run(&mut display)?;
+    app::run(&mut GameState::new())?;
 
     ratatui::restore();
 
