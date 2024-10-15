@@ -1,8 +1,7 @@
 use ratatui::Frame;
-use ratatui::layout::{Alignment, Rect};
-use ratatui::prelude::{Constraint, Layout, Stylize};
-use ratatui::style::{Color, Modifier, Style};
-use ratatui::text::{Line, Span, Text};
+use ratatui::prelude::{Constraint, Layout};
+use ratatui::layout::Alignment;
+use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, BorderType, Clear, Paragraph};
 
 #[derive(Clone)]
@@ -15,6 +14,7 @@ pub enum Side {
 pub enum PanelType {
     Map,
     SidePanel(Side),
+    Title,
 }
 
 trait PanelComponents {
@@ -24,8 +24,8 @@ trait PanelComponents {
 
 #[derive(Clone)]
 pub struct Size {
-    width: u16,
-    height: u16,
+    pub width: u16,
+    pub height: u16,
 }
 
 impl Size {
@@ -40,20 +40,22 @@ impl Size {
 #[derive(Clone)]
 pub struct Panel<'a> {
     size: Size,
-    title: String,
+    title: Option<String>,
     header: Option<Line<'a>>,
     content: Vec<Line<'a>>,
     panel_type: PanelType,
+    pub alignment: Alignment,
 }
 
 impl<'a> Panel<'a> {
-    pub fn new(size: Size, title: String, header: Option<Line<'a>>, content: Vec<Line<'a>>, panel_type: PanelType) -> Self {
+    pub fn new(size: Size, title: Option<String>, header: Option<Line<'a>>, content: Vec<Line<'a>>, panel_type: PanelType) -> Self {
         Panel {
             size,
             title,
             header,
             content,
             panel_type,
+            alignment: Alignment::Left,
         }
     }
 
@@ -132,31 +134,35 @@ impl<'a> PanelComponents for Panel<'a> {
                     },
                 }
             },
+            PanelType::Title => {
+                header
+            },
         };
 
-
-
-        frame.render_widget(Clear, header);
         frame.render_widget(Clear, area);
 
-        frame.render_widget(
-            Paragraph::new(Line::styled("ByteWorks", Style::default()
-                    .fg(Color::Blue)
-                    .add_modifier(Modifier::BOLD)))
-                .alignment(Alignment::Center)
-                .block(Block::bordered()
-                    .border_type(BorderType::Rounded)
-                ),
-            header,
-        );
-
-        frame.render_widget(
-            Paragraph::new(formatted_content)
-                .block(Block::bordered()
-                    .border_type(BorderType::Rounded)
-                    .title(self.title.clone())
-                ),
-            area,
-        );
+        match self.title.clone() {
+            Some(title) => {
+                frame.render_widget(
+                    Paragraph::new(formatted_content)
+                        .alignment(self.alignment)
+                        .block(Block::bordered()
+                            .border_type(BorderType::Rounded)
+                            .title(title)
+                        ),
+                    area,
+                );
+            },
+            None => {
+                frame.render_widget(
+                    Paragraph::new(formatted_content)
+                        .alignment(self.alignment)
+                        .block(Block::bordered()
+                            .border_type(BorderType::Rounded)
+                        ),
+                    area,
+                );
+            },
+        }
     }
 }
