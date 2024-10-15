@@ -19,7 +19,7 @@ In the game there is:
  - [ ] Add in support for more machines
  - [ ] Add fixed resource nodes
  - [ ] Add production, i.e. mining from nodes, smelting, etc.
- - [ ] Build a better UI system for scalability
+ - [x] Build a better UI system for scalability
 
 ## License
 
